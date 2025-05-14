@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="Windrunner"
+config/name="Windrunner Prototype"
 run/main_scene="uid://dxqsqhdw2iai5"
 config/features=PackedStringArray("4.4", "C#", "Forward Plus")
 config/icon="res://icon.svg"
