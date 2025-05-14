@@ -9,6 +9,11 @@ public partial class Player : CharacterBody3D
 	[Export]
 	public int FallAcceleration { get; set; } = 75;
 
+	// Will need to have a gravity direction vector, as well as a gravity strength scalar. - -defaults to natural gravity. added to target velocity per frame
+	// A list to store current lashings.
+	// Will need a custom is on floor implementation to account for gravity vector
+	// Create a basic first person camera, then implement the gravity rotation on top of it with more understanding
+
 	private Vector3 _targetVelocity = Vector3.Zero;
 
 	public override void _PhysicsProcess(double delta)
