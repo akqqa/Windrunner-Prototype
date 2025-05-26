@@ -12,7 +12,9 @@ public partial class MovementController : Node3D
     [Export]
     public float moveSpeed = 10f;
     [Export]
-    public float jumpStrength = 10f;
+    public float jumpStrength = 4f;
+    [Export]
+    public float airAcceleration = 1f;
 
 
     public void Init(Player player)
@@ -22,49 +24,54 @@ public partial class MovementController : Node3D
 
     public override void _PhysicsProcess(double delta)
     {
-        targetVelocity = Vector3.Zero;
+        float dt = (float)delta;
 
         // Get cameras forward and right vectors to base movement off of
         Vector3 direction = Vector3.Zero;
         Vector3 forward = player.GetCameraForward();
         Vector3 right = player.GetCameraRight();
 
-        if (player.IsOnFloor())
+        // Get directional input
+        if (Input.IsActionPressed("move_forward"))
+        {
+            direction += forward;
+        }
+        if (Input.IsActionPressed("move_back"))
+        {
+            direction -= forward;
+        }
+        if (Input.IsActionPressed("move_right"))
+        {
+            direction += right;
+        }
+        if (Input.IsActionPressed("move_left"))
+        {
+            direction -= right;
+        }
+
+        direction = direction.Normalized() * moveSpeed;
+
+        // Get current Velocities - horizonal and vertical with respect to the gravity direction
+        Vector3 currentVelocity = player.Velocity;
+        Vector3 horizontalVelocity = currentVelocity.Slide(player.gravityDirection);
+        Vector3 verticalVelocity = currentVelocity.Project(player.gravityDirection);
+
+
+        if (player.IsOnFloor()) // In future will have to ensure no air control with lashings? or minimal. idk. Will also need to override this method based on gravity direction.
         {
             if (Input.IsActionPressed("jump"))
             {
-
-                targetVelocity += -player.gravityDirection * jumpStrength;
-            }
-            if (Input.IsActionPressed("move_forward"))
-            {
-                direction += forward;
-            }
-            if (Input.IsActionPressed("move_back"))
-            {
-                direction -= forward;
-            }
-            if (Input.IsActionPressed("move_right"))
-            {
-                direction += right;
-            }
-            if (Input.IsActionPressed("move_left"))
-            {
-                direction -= right;
+                verticalVelocity = -player.gravityDirection * jumpStrength; // Applies a jump impulse
             }
 
-            direction = direction.Normalized();
-            direction = direction * moveSpeed;
+            horizontalVelocity = horizontalVelocity.Lerp(direction, player.gravityStrength * dt);
+        } else {
+            verticalVelocity += player.gravityDirection * player.gravityStrength * dt;
 
-            targetVelocity += direction;
-
-        }
-        else
-        {
-            targetVelocity += player.gravityDirection * player.gravityStrength * (float)delta;
+            horizontalVelocity = horizontalVelocity.Lerp(direction, airAcceleration * dt); // Applies gravity to weaken the jump impulse
         }
 
-        player.Velocity = targetVelocity;
+        player.Velocity = horizontalVelocity + verticalVelocity;
         player.MoveAndSlide();
     }
 }
